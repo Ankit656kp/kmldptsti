@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="glass p-4 mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <div style="width:48px;height:48px;background:#ff0000;border-radius:12px;box-shadow:0 0 30px rgba(255,0,0,.25)"></div>
+    <div>
+      <div class="brand">{{ project }}</div>
+      <div class="text-secondary">{{ heading }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="glass p-4">
+      <h5 class="grad">Try the API</h5>
+      <form action="/api/media" method="get" class="mt-2">
+        <div class="mb-2">
+          <label class="form-label">YouTube URL</label>
+          <input type="url" class="form-control" name="url" placeholder="https://youtube.com/watch?v=..." required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Type</label>
+          <select class="form-select" name="type">
+            <option value="audio" selected>Audio (MP3)</option>
+            <option value="video">Video (stream)</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">API Key</label>
+          <input type="text" class="form-control" name="key" placeholder="your-api-key" required>
+        </div>
+        <button class="btn btn-light pill px-4">Send Request</button>
+      </form>
+      <div class="small text-secondary mt-3">Response: JSON (status, title, duration, quality, src_url, cached, file_id*)</div>
+      <div class="small text-secondary">*file_id Telegram bots ke liye super fast playback.</div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="glass p-4">
+      <h5 class="grad">Plans</h5>
+      <div class="card-metric">
+        <div class="fw-bold">Free</div>
+        <div class="text-secondary">Daily limit: {{ free_limit }}</div>
+      </div>
+      <div class="card-metric">
+        <div class="fw-bold">Premium</div>
+        <div class="text-secondary">{{ currency }}{{ price }}/30 days • {{ paid_limit }}/day</div>
+        <div class="mt-2">Buy via Telegram: <a href="https://t.me/{{ support|replace('@','') }}" target="_blank">{{ support }}</a></div>
+      </div>
+      <div class="card-metric">
+        <div class="fw-bold">Features</div>
+        <ul class="mb-0">
+          <li>Super fast responses (cache-first)</li>
+          <li>24/7 uptime</li>
+          <li>Audio & Video endpoints</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

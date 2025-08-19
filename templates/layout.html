@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ project if project else 'Komal API' }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#0f0f10; color:#eee; font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;}
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .pill { border-radius: 999px; }
+    .brand { font-size: 1.6rem; font-weight: 700; letter-spacing: .5px; }
+    .card-metric { padding:14px 16px; margin-bottom:12px; border-radius:12px; border:1px solid rgba(255,255,255,.04); background: #151517; }
+    .grad { background: linear-gradient(90deg, #ff2d55, #6a5cff); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
+    a, a:hover { color: #9db5ff; text-decoration: none; }
+    .text-secondary { color: #b9b9c3; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+</head>
+<body>
+  <div class="container py-4">{% block content %}{% endblock %}</div>
+</body>
+</html>

@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="glass p-4 mb-3 text-center">
+  <div class="brand">{{ project }} Admin Panel</div>
+  <div class="text-secondary">Manage API keys and monitor usage</div>
+</div>
+
+<div class="row">
+  <div class="col-md-4"><div class="card-metric"><div class="text-secondary">TOTAL REQUESTS</div><div style="font-size:36px">{{ total_requests }}</div></div></div>
+  <div class="col-md-4"><div class="card-metric"><div class="text-secondary">TODAY'S REQUESTS</div><div style="font-size:36px">{{ today_requests }}</div></div></div>
+  <div class="col-md-4"><div class="card-metric"><div class="text-secondary">ACTIVE API KEYS</div><div style="font-size:36px">{{ active_keys }}</div></div></div>
+</div>
+
+<div class="row mt-3">
+  <div class="col-lg-8">
+    <div class="glass p-3">
+      <h5 class="grad">Requests Over Time</h5>
+      <canvas id="weeklyChart" height="140"></canvas>
+    </div>
+
+    <div class="glass p-3 mt-3">
+      <h5 class="grad">API Key Usage Distribution</h5>
+      <canvas id="keyChart" height="140"></canvas>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="glass p-3">
+      <h5 class="grad mb-3">API Key Management</h5>
+      <form id="createForm" class="row g-2">
+        <div class="col-12"><input class="form-control" name="username" placeholder="Friend's name" required></div>
+        <div class="col-6"><input class="form-control" name="days" type="number" value="30" min="1" required></div>
+        <div class="col-6"><input class="form-control" name="limit" type="number" value="100" min="1" required></div>
+        <div class="col-12 form-check mt-2"><input class="form-check-input" type="checkbox" name="is_admin" id="adm"><label class="form-check-label" for="adm">Grant admin privileges</label></div>
+        <div class="col-12 mt-2"><button class="btn btn-danger w-100 pill">Create API Key</button></div>
+      </form>
+
+      <div class="mt-3">
+        <button id="loadKeys" class="btn btn-outline-light pill">Refresh Keys</button>
+        <div id="keysBox" class="mt-3 small text-secondary">No data</div>
+      </div>
+
+      <div class="mt-3">
+        <a id="exportLogs" class="btn btn-outline-warning pill" href="/admin/export_logs?admin_key={{ admin_key }}">Export Logs (CSV)</a>
+      </div>
+
+      <div class="mt-3">
+        <div class="text-secondary">Error rate (7d): <strong>{{ error_rate }}%</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="glass p-4 mt-3">
+  <h5 class="grad mb-3">Recent API Logs</h5>
+  <div class="table-responsive">
+    <table class="table table-dark table-sm align-middle">
+      <thead><tr><th>Time (UTC)</th><th>Key</th><th>Endpoint</th><th>Status</th><th>ms</th><th>Query</th></tr></thead>
+      <tbody>
+        {% for L in logs %}
+        <tr>
+          <td>{{ L.ts }}</td>
+          <td class="text-truncate" style="max-width:160px">{{ L.key }}</td>
+          <td>{{ L.endpoint }}</td>
+          <td>{% if L.status %}✅{% else %}❌{% endif %}</td>
+          <td>{{ L.ms }}</td>
+          <td class="text-truncate" style="max-width:260px">{{ L.query }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const ak = encodeURIComponent("{{ admin_key }}");
+
+// Create key
+document.getElementById("createForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const body = new URLSearchParams(fd);
+  const res = await fetch(`/admin/create?admin_key=${ak}`, {method:"POST", body});
+  const j = await res.json();
+  alert(j.status ? `Key: ${j.key}` : j.error);
+});
+
+// Load keys
+document.getElementById("loadKeys").addEventListener("click", async ()=>{
+  const res = await fetch(`/admin/keys?admin_key=${ak}`);
+  const j = await res.json();
+  if(!j.status) return alert(j.error);
+  const box = document.getElementById("keysBox");
+  box.innerHTML = "";
+  j.keys.forEach(k=>{
+    const row = document.createElement("div");
+    row.className = "card-metric d-flex justify-content-between align-items-center";
+    row.innerHTML = `<div>
+      <div class="fw-bold">${k.username}</div>
+      <div class="small text-secondary">${k.key}</div>
+      <div class="small">today ${k.requests_today}/${k.limit} • expires ${k.expires_at}</div>
+    </div>
+    <button class="btn btn-sm btn-outline-danger pill">Delete</button>`;
+    row.querySelector("button").onclick = async ()=>{
+      if(!confirm("Delete this key?")) return;
+      const fd = new FormData(); fd.append("target_key", k.key);
+      const res2 = await fetch(`/admin/delete?admin_key=${ak}`, {method:"POST", body: fd});
+      const j2 = await res2.json();
+      alert(j2.status ? "Deleted" : j2.error);
+      document.getElementById("loadKeys").click();
+    };
+    box.appendChild(row);
+  });
+});
+
+// --- Charts (data injected server-side) ---
+const weeklyData = {{ weekly|tojson }};
+const perkeyData = {{ perkey|tojson }};
+
+(function renderCharts(){
+  // Weekly
+  const wLabels = weeklyData.map(i=>i.day);
+  const wVals = weeklyData.map(i=>i.count);
+  const ctx = document.getElementById('weeklyChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: wLabels, datasets: [{ label: 'Requests', data: wVals, fill: true, tension:0.4, borderColor: 'rgba(255,99,132,1)', backgroundColor: 'rgba(255,99,132,0.12)'}] },
+    options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // Per-key
+  const kLabels = perkeyData.map(i=>i.label);
+  const kVals = perkeyData.map(i=>i.value);
+  const kctx = document.getElementById('keyChart').getContext('2d');
+  new Chart(kctx, { type:'doughnut', data:{ labels:kLabels, datasets:[{data:kVals}] }, options:{plugins:{legend:{position:'right'}}} });
+})();
+</script>
+{% endblock %}
