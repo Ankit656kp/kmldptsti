@@ -1,17 +1,16 @@
 import uuid
-from fastapi import APIRouter, Query
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Query, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from utils.db import create_key
-from config import ADMIN_KEY   # Admin key config se uthayenge
+from utils.auth import auth
+from utils.db import create_key, get_all_keys
 
 router = APIRouter()
 
-
-# ✅ Simple auth function
-def auth(admin_key: str) -> bool:
-    return admin_key == ADMIN_KEY
+# ✅ Templates load
+templates = Jinja2Templates(directory="templates")
 
 
 # ✅ Input model (JSON body)
@@ -22,9 +21,30 @@ class CreateKeyRequest(BaseModel):
     is_admin: bool = False
 
 
+# 🌐 Admin Panel Page
+@router.get("/", response_class=HTMLResponse)
+async def admin_panel(request: Request, admin_key: str = Query(...)):
+    # ✅ Auth check
+    if not auth(admin_key):
+        return HTMLResponse("<h1>Unauthorized</h1>", status_code=401)
+
+    # ✅ DB से सभी keys ले आओ
+    keys = get_all_keys()
+
+    # ✅ Render template with keys
+    return templates.TemplateResponse(
+        "admin.html", {
+            "request": request,
+            "keys": keys,
+            "admin_key": admin_key
+        }
+    )
+
+
+# 🌐 Key Create API (JSON)
 @router.post("/create", response_class=JSONResponse)
 async def create(data: CreateKeyRequest, admin_key: str = Query(...)):
-    # ✅ Check admin auth
+    # ✅ Auth check
     if not auth(admin_key):
         return JSONResponse({"status": False, "error": "Unauthorized"}, status_code=401)
 
@@ -42,4 +62,4 @@ async def create(data: CreateKeyRequest, admin_key: str = Query(...)):
         "status": True,
         "key": k,
         "expires_at": doc["expires_at"].isoformat()
-    }
+                            }
