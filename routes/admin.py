@@ -2,10 +2,16 @@ import uuid
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from utils.auth import auth
+
 from utils.db import create_key
+from config import ADMIN_KEY   # Admin key config se uthayenge
 
 router = APIRouter()
+
+
+# ✅ Simple auth function
+def auth(admin_key: str) -> bool:
+    return admin_key == ADMIN_KEY
 
 
 # ✅ Input model (JSON body)
