@@ -1,0 +1,61 @@
+{
+  "name": "Komal API",
+  "description": "Super Fast Audio/Video API for Telegram Bots",
+  "repository": "https://github.com/your-username/komal-api",
+  "keywords": ["komal", "api", "telegram", "music", "video"],
+  "env": {
+    "MONGO_URI": {
+      "description": "MongoDB connection string",
+      "value": "mongodb+srv://user:pass@host/db"
+    },
+    "DB_NAME": {
+      "description": "MongoDB database name",
+      "value": "komal_api"
+    },
+    "BOT_TOKEN": {
+      "description": "Your Telegram bot token",
+      "value": "123:ABC"
+    },
+    "CHANNEL_ID": {
+      "description": "Telegram channel ID where cache is stored",
+      "value": "-1001234567890"
+    },
+    "ADMIN_KEY": {
+      "description": "Secret admin key for API management",
+      "value": "ANKIT@656"
+    },
+    "PROJECT_NAME": {
+      "description": "Project display name",
+      "value": "Komal API"
+    },
+    "HOMEPAGE_HEADING": {
+      "description": "Heading text shown on homepage",
+      "value": "Super Fast Audio/Video API"
+    },
+    "FREE_DAILY_LIMIT": {
+      "description": "Daily limit for free users",
+      "value": "1000"
+    },
+    "PAID_DAILY_LIMIT": {
+      "description": "Daily limit for paid users",
+      "value": "5000"
+    },
+    "CURRENCY": {
+      "description": "Currency symbol",
+      "value": "₹"
+    },
+    "PAID_PRICE": {
+      "description": "Price for paid plan",
+      "value": "29"
+    },
+    "SUPPORT_TG": {
+      "description": "Telegram support username/link",
+      "value": "@your_support"
+    },
+    "PORT": {
+      "description": "Port for the server",
+      "value": "5000"
+    }
+  },
+  "stack": "heroku-24"
+}
